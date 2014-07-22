@@ -143,49 +143,6 @@ stochastic.transmission.matrix2<-function(age , disease.state , vacc.immune , fo
 
 
 
-stochastic.transmission.matrix3<-function( disease.state , v , foi.ages  , demographic.ages , time.step ,   rho  ,  num.comps){
-  
-  change.matrix             =    matrix(0,(length(disease.state)+1),1)
-  new.infecteds             =    0
-  u                         =    time.step/365
-  
-  for (age in 0: max(demographic.ages[,1])){
-    foi                       =    min(1,sum(foi.ages[age+1, ]))
-  
-    age.disease.state         =    disease.state[((age*num.comps)+1):((age+1)*num.comps)]
-    
-    
-  # Assume that no one 1 or older gets vaccinnated
-    if (age > 0)
-    {
-      v      =    0
-    }
-  
-    susceptibles     =     infecteds    =     recovered     =     vac    =   exposed   =    matrix(0,6,1)
-
-    susceptibles     =    rmultinom(1, age.disease.state[1] , c( (1-u)*(1-foi) , (1-u)*foi ,0 ,  u*(1-foi) , u*foi , 0))
-    new.infecteds    =    new.infecteds  +   susceptibles[2]    +    susceptibles[5]
-    infecteds        =    rmultinom(1, age.disease.state[2] , c(0 , (1-u) * (1- rho), (1-u ) * rho,  0  ,  u  * (1 - rho)  ,  u  *  rho))
-    recovered        =    rmultinom(1,age.disease.state[3],c( 0 , 0 , (1-u) ,  0 , 0 , u))
-      
-    if(age == max(demographic.ages[,1])){
-      
-      change.matrix[seq((((age)*num.comps)+1), num.comps*(age+1))]        <-      c( susceptibles[1:num.comps]  + infecteds[1:num.comps] +  recovered[1:num.comps])
-      
-      } else{
-    
-        change.matrix[seq((((age)*num.comps)+1), num.comps*(age+2))]      <-      c( susceptibles  + infecteds +  recovered)
-      
-      }
-  
-    }
-    change.matrix[(length(disease.state)+1)]      =  new.infecteds   
-
-  return(change.matrix)
-}
-
-
-
 
 stochastic.transmission.matrix.no.aging<-function(age , disease.state , vacc.immune , foi  , demographic.ages , time.step ,   rho){
   
@@ -244,28 +201,6 @@ contacts.per.age.group <- function(mixing.matrix  ,  demographic.ages){
   }
   
   return(rowSums(contacts.per.age))
-}
-
-
-
-grouped.ages <-function(contacts,demographic.ages){
-  group.ages <- matrix(0,length(contacts[,1]),2)
-  group.ages[,1] <- contacts[,1]
-  count = 1
-  for (i in 1:length(demographic.ages[,1]))
-  {
-    if(demographic.ages[i,1] > tail(group.ages[,1],1)){
-      group.ages[length(group.ages[,1]),2] <- group.ages[length(group.ages[,1]),2] + demographic.ages[i,2]
-    }
-    else if(group.ages[count+1,1] > demographic.ages[i,1]){
-      group.ages[count,2] <- group.ages[count,2] + demographic.ages[i,2] 
-    }
-    else {
-      count <- count + 1
-      group.ages[count,2] <- group.ages[count,2] + demographic.ages[i,2] 
-    }
-  }
-  return(group.ages)
 }
 
 
@@ -395,10 +330,10 @@ calibrate.beta <- function (mixing.matrix, disease.state, infectious.indices, ma
 
 
 reduce.susceptibles <- function(min.age, max.age, disease.state, proportion.sus.to.remove, num.comps, susceptible.indices){
+  
   susceptibles  =  susceptible.indices[(min.age + 1) : (max.age + 1)]
   disease.state [ (susceptibles + (num.comps - 1) )]  = disease.state [ (susceptibles + (num.comps - 1) )]   +   round( disease.state[ susceptibles  ] * ( proportion.sus.to.remove ) )
   disease.state [ susceptibles ]  =  round(disease.state[ susceptibles ] * ( 1 - proportion.sus.to.remove ) )
 
-  
   return(disease.state)
 }
