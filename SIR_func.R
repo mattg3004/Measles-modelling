@@ -92,7 +92,7 @@ number.of.each.age <- function(demographic.ages,disease.state){
     age = demographic.ages[i,1]
     number.of.age[i]          =    sum(disease.state[((age*3)+1):((age+1)*3)])
   }
-  1
+  #1
   return(number.of.age)
 }
 
