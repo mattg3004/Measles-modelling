@@ -98,7 +98,7 @@ number.of.each.age <- function(demographic.ages,disease.state){
 
 
 
-stochastic.transmission.matrix.exposed.included<-function(age , disease.state , vacc.immune , foi  , demographic.ages , time.step ,   rho, mu, num.comps){
+stochastic.transmission.matrix.exposed.included<-function(age , disease.state , foi  , demographic.ages , time.step ,   rho, mu, num.comps){
   
   age.disease.state         =    disease.state[((age*num.comps)+1):((age+1)*num.comps)]
   number.of.age             =    sum(age.disease.state)
@@ -106,14 +106,8 @@ stochastic.transmission.matrix.exposed.included<-function(age , disease.state , 
   change.matrix             =    matrix(0,10,1)
   new.infecteds             =    0
   newly.exposed             =    0
-  all.exposed               =    0
   # Assume that no one 1 or older gets vaccinnated
-  if (age > 0)
-  {
-    vacc.immune      =    0
-  }
   u          =    prob.age.change
-  v          =    vacc.immune
   
   susceptibles     =     infecteds    =     recovered     =     vac    =   exposed   =    matrix(0,6,1)
   
@@ -135,10 +129,7 @@ stochastic.transmission.matrix.exposed.included<-function(age , disease.state , 
   }
   
   if (age.disease.state[4] > 0){
-    #number.recover   =    rbinom(age.disease.state[4],1,min(1,365*time.step/15))
-    #prop.recover     =    number.recover/age.disease.state[4]
     recovered        =    rmultinom(1,age.disease.state[4],c( 0 , 0 , 0, (1-u) ,  0 , 0 , 0,  u))
-    
   }
   
   
