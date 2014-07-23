@@ -133,7 +133,7 @@ stochastic.transmission.matrix.exposed.included <- function(age , disease.state 
   }
   
   
-  change.matrix[seq(1,2*num.comps)]      =     susceptibles  + infecteds +  recovered 
+  change.matrix[seq(1,2*num.comps)]      =     susceptibles  + exposed  +  infecteds +  recovered 
   change.matrix[9]   =   newly.exposed
   change.matrix[10]  =   new.infecteds
   #print(new.infecteds)
@@ -276,7 +276,7 @@ initial.disease.state <- function(demographic.ages  ,  vacc.immune  ,   initial.
 
 
 
-supplementary.vacc <- function(disease.state,supp.vac,max.age, num.comps){
+supplementary.vacc <- function(disease.state, supp.vac , max.age, num.comps){
   disease.state
   for (age in 0:max.age)
   {
@@ -292,7 +292,8 @@ supplementary.vacc <- function(disease.state,supp.vac,max.age, num.comps){
 
 
 proportion.of.susceptible.contacts<-function (mixing.matrix, demographic.ages, disease.state, susceptible.indices){
-  pop.by.age     =    number.of.each.age (demographic.ages,disease.state)
+  num.comps  =  susceptible.indices[2] - susceptible.indices[1]
+  pop.by.age     =    number.of.each.age (demographic.ages,disease.state, num.comps)
   susceptible.by.age   =   disease.state[susceptible.indices]
   susceptible.contacts  =  sum(susceptible.by.age  %*% mixing.matrix)
   total.contacts  =  sum(rowSums(mixing.matrix) * pop.by.age)
