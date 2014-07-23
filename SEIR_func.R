@@ -1,51 +1,51 @@
-#
 
-full.mixing.matrix<- function(contacts,demographic.ages){
-  polymod.ages                =    contacts[,1]
-  contacts                    <-   contacts[,2:16]
-  max.age                     <-   max(demographic.ages[,1])
-  contact.matrix              =    matrix(0,max.age+1,max.age+1)
-  colnames(contact.matrix)    =    c(0:max.age)
-  rownames(contact.matrix)    =    c(0:max.age)
+full.mixing.matrix  <- function(contacts,demographic.ages){
+  polymod.ages                =    contacts[, 1]
+  contacts                    <-   contacts[, 2 : 16]
+  max.age                     <-   max(demographic.ages[, 1])
+  contact.matrix              =    matrix(0, max.age+1, max.age+1)
+  colnames(contact.matrix)    =    c(0 : max.age)
+  rownames(contact.matrix)    =    c(0 : max.age)
   num.polymod.ages            <-   length(polymod.ages)
   row.start.position          =    1
   
-  for(i in 1:(num.polymod.ages)){
-    col.start.position        =    1
-    col.end.position          =    1
-    
-    if (i == num.polymod.ages){
-      row.end.position        =    length(contact.matrix[1,])
+  for(i in 1 : ( max(polymod.ages))){
+    for (j in 1: (max(polymod.ages))){
+      i1 = floor((i-1) / 5) + 1
+      j1 = floor((j-1) / 5) + 1
+      contact.matrix[ i, j]  =  contacts[ i1, j1]/5
     }
-    else
-    {
-      row.end.position        =    row.start.position + polymod.ages[i+1] - polymod.ages[i] -1
-    }
-    
-    for (k in 1:(num.polymod.ages)){
-      
-      if (k < num.polymod.ages){
-        num.repeats           =    polymod.ages[k+1] - polymod.ages[k]
-        col.end.position      =    col.start.position + num.repeats - 1
-      }
-      else
-      {
-        num.repeats           =    length(contact.matrix[1,]) - polymod.ages[k]
-        col.end.position      =    length(contact.matrix[1,])
-      }
-      num.repeats             =    max((row.end.position-row.start.position+1),(col.end.position-col.start.position+1))
-      contact.block           =    matrix((contacts[i,k]/num.repeats),(row.end.position-row.start.position+1),(col.end.position-col.start.position+1))
-      
-      
-      contact.matrix[row.start.position  :  row.end.position  ,  col.start.position  :  col.end.position] = contact.block
-      
-      col.start.position      =    col.end.position + 1
-    }
-    row.start.position        =    row.end.position + 1   
   }
+  
+  for(i in 1 : ( max(polymod.ages))){
+    for ( j in (max(polymod.ages) + 1) : (max.age+1)){
+      i1 = floor((i-1) / 5) + 1
+      j1 = floor(max(polymod.ages) / 5) + 1
+      contact.matrix[ i, j]  =  contacts[ i1, j1]/5
+    }
+  }
+    
+  for ( i in (max(polymod.ages) + 1) : (max.age+1)){
+    for ( j in 1 :  ( max(polymod.ages))){
+      i1 = floor(max(polymod.ages) / 5) + 1
+      j1 = floor((j-1) / 5) + 1
+      contact.matrix[ i, j]  =  contacts[ i1, j1]/ 23
+    }
+  }
+  
+  last.entry.col  =  length(contacts[1, ])
+  last.entry.row  =  length(contacts[ , 1])
+  for ( i in (max(polymod.ages) + 1) : (max.age+1)){
+    for ( j in (max(polymod.ages) + 1) : (max.age+1)){
+      contact.matrix[ i, j]  =  contacts[ last.entry.row, last.entry.col]/ 23
+    }
+  }
+  
+    
   
   return(contact.matrix)
 }
+
 
 
 
