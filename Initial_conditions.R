@@ -16,12 +16,7 @@
   vacc.prop                     =       1
   vacc.success                  =       0.85
   v                             =       vacc.prop*vacc.success
-  
-  birth.rate                    =       44.3/(1000*365)
-  death.rate                    =       14/(1000*365)
-  prob.survival                 =       1-(death.rate)*(time.step)
-  
-  
+
   incubation.period             =       10         # length of incubation period on average
   mu                            =       min(1, time.step/incubation.period)   # probability of moving from exposed to infectious class during a timestep
   infectious.period             =       8           # number of days spent in the infected class on average
@@ -42,9 +37,11 @@
   beta                          =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
   disease.state                 <-      initial.disease.state(demographic.ages  ,  v  , initial.prop.susceptible ,  num.comps)
   av.migrants.per.age.per.day   =       1/(365 * (max.age + 1))
-  prob.survival                 =       1 - death.rate*time.step
   
-  
+  birth.rate                    =       44.3/(1000*365)
+  death.rate                    =       14/(1000*365)
+  prob.survival                 =       1-(death.rate)*(time.step)
+
   
   infecteds.by.time             =       matrix(0, num.steps, 1)
   susceptibles.by.time          =       matrix(0, num.steps, 1)

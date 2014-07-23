@@ -84,13 +84,13 @@ deterministic.transmission.matrix<-function(age , disease.state , vacc.immune , 
 }
 
 
-number.of.each.age <- function(demographic.ages,disease.state){
+number.of.each.age <- function(demographic.ages,disease.state, num.comps){
   
   number.of.age = matrix(0,length(demographic.ages[,1]),1)
   for (i in 1:length(demographic.ages[,1]))
   {
     age = demographic.ages[i,1]
-    number.of.age[i]          =    sum(disease.state[((age*3)+1):((age+1)*3)])
+    number.of.age[i]          =    sum(disease.state[((age * num.comps)+1):((age+1) * num.comps)])
   }
   #1
   return(number.of.age)
@@ -98,7 +98,7 @@ number.of.each.age <- function(demographic.ages,disease.state){
 
 
 
-stochastic.transmission.matrix.exposed.included<-function(age , disease.state , foi  , demographic.ages , time.step ,   rho, mu, num.comps){
+stochastic.transmission.matrix.exposed.included <- function(age , disease.state , foi  , demographic.ages , time.step ,   rho, mu, num.comps){
   
   age.disease.state         =    disease.state[((age*num.comps)+1):((age+1)*num.comps)]
   number.of.age             =    sum(age.disease.state)
@@ -109,7 +109,7 @@ stochastic.transmission.matrix.exposed.included<-function(age , disease.state , 
   # Assume that no one 1 or older gets vaccinnated
   u          =    prob.age.change
   
-  susceptibles     =     infecteds    =     recovered     =     vac    =   exposed   =    matrix(0,6,1)
+  susceptibles     =     infecteds    =     recovered     =     vac    =   exposed   =    matrix(0,8,1)
   
   if (age.disease.state[1] > 0){
     susceptibles     =    rmultinom(1, age.disease.state[1] , c( (1-u)*(1-foi) , (1-u)*foi ,0 , 0, u*(1-foi) , u*foi , 0, 0))
@@ -268,7 +268,7 @@ initial.disease.state <- function(demographic.ages  ,  vacc.immune  ,   initial.
   disease.state                 =      matrix(0,num.comps*length(demographic.ages[,1]),1)
   
   for (i in 1:length(demographic.ages[,1])){
-    disease.state[(((i-1)*num.comps)+1):((i)*num.comps)]      =    ceiling(c( demographic.ages[i,2]*initial.prop.susceptible , 0, demographic.ages[i,2]*(1-initial.prop.susceptible)))
+    disease.state[(((i-1)*num.comps)+1):((i)*num.comps)]      =    ceiling(c( demographic.ages[i,2]*initial.prop.susceptible , 0, 0, demographic.ages[i,2]*(1-initial.prop.susceptible)))
   }
   
   return(disease.state)
@@ -305,9 +305,9 @@ proportion.of.susceptible.contacts<-function (mixing.matrix, demographic.ages, d
 
 
 
-foi.by.next.gen <- function ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages){
+foi.by.next.gen <- function ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps){
   infectious.by.age  =  disease.state[infectious.indices]
-  pop.by.age  =  number.of.each.age (demographic.ages,disease.state)
+  pop.by.age  =  number.of.each.age (demographic.ages,disease.state, num.comps)
   foi.by.age  =  (rowSums(t(infectious.by.age * mixing.matrix * beta) ) / pop.by.age) * time.step / infectious.period 
   return(foi.by.age)  
 }
