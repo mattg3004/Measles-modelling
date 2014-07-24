@@ -11,7 +11,7 @@ source("SEIR_measles.R")
 
 num.repeats = 1
 num.time.steps.pre.aging = 100
-aging.section.steps  =  500
+aging.section.steps  =  1000
 num.time.steps.post.aging = 100
 infections.by.age.pre.aging  =  matrix(0, length(demographic.ages[, 1]), num.repeats)
 infections.by.age.post.aging  =  matrix(0, length(demographic.ages[, 1]), num.repeats)
@@ -22,7 +22,8 @@ for( k in 1 : num.repeats){
   disease.state                 <-      initial.disease.state (demographic.ages  ,  v  , 1 ,  num.comps)
   disease.state                 =       reduce.susceptibles (0, 5, disease.state, 0.98, num.comps, susceptible.indices)
   disease.state                 =       reduce.susceptibles (6, 20, disease.state, 0.97, num.comps, susceptible.indices)
-  disease.state                 =       reduce.susceptibles (21, max(demographic.ages[, 1]), disease.state, 0.9, num.comps, susceptible.indices)
+  disease.state                 =       reduce.susceptibles (21, 40,  disease.state, 0.7, num.comps, susceptible.indices)
+  disease.state                 =       reduce.susceptibles (41, max(demographic.ages[, 1]),  disease.state, 0.9, num.comps, susceptible.indices)
   
   disease.state[3]  =  1
   
@@ -65,6 +66,9 @@ for( k in 1 : num.repeats){
   # reset to 0 infecteds or exposed individuals as we want to investigate the impact ofaging the population without decreasing susceptibles via infection
   disease.state[infectious.indices]  =  0
   disease.state[infectious.indices - 1]  =  0
+  par(mfrow=c(2,2))
+  plot(infections.by.age.pre.aging)
+  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps))
   
   for ( l in 1 : aging.section.steps){
     updated.state               =        matrix( 0  ,  num.comps*length(demographic.ages[,1])  ,  1)
@@ -94,7 +98,7 @@ for( k in 1 : num.repeats){
   
   # after aging the population by a given amount, introduce a single infected 
   disease.state[3]            =  1
-  
+  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps))
   for (j in 1 : num.time.steps.post.aging){
     N                           =        sum(disease.state)
     births.average              =        birth.rate * N * time.step 
@@ -139,8 +143,7 @@ for( k in 1 : num.repeats){
   
 }
 
-par(mfrow=c(1,2))
-plot(infections.by.age.pre.aging)
+
 plot(infections.by.age.post.aging)
 
 
