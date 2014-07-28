@@ -7,9 +7,9 @@
   source("Initial_conditions.R")
   
   Run.Sims <-function(num.steps){
-  
+  total.migrants = 0
   for(j in 1:num.steps){
-    
+    print(paste('t =', t, ', beta =', beta))
     N                           =       sum(disease.state)
     births.average              =       birth.rate * N * time.step
     births.total                =       rpois(1, births.average)
@@ -17,9 +17,10 @@
     disease.state[1]            =       disease.state[1] + (births.total - births.vac)
     disease.state[num.comps]    =       disease.state[num.comps] + births.vac
     migrant.infecteds           =       rpois(  max.age + 1  ,  av.migrants.per.age.per.day * time.step)
-    #print(paste("infected.migrants =", sum(migrant.infecteds)))
+    total.migrants  =   total.migrants   +  sum(migrant.infecteds) 
+    #print(paste("total.migrants =", sum(total.migrants)))
     
-    
+    beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
     disease.state[migrant.indices]    =     disease.state[migrant.indices] + migrant.infecteds
     foi.by.time[j, 4]           =       sum(disease.state[infectious.indices])
     # print(paste("infecteds =",sum(disease.state[seq(inf.comp,length(updated.state),num.comps)])))
@@ -55,7 +56,6 @@
       
     }
     disease.state                 =       updated.state
-    
     number.by.age                 =       number.of.each.age(demographic.ages,updated.state, num.comps)
     prop.infected.by.age          =       updated.state[infectious.indices]/number.by.age
     prop.susceptible              =       updated.state[susceptible.indices]/number.by.age
@@ -96,5 +96,5 @@
   {
      infections.per.year[pp]   =   sum(infecteds.by.time[((floor(pp-1)*(365/time.step)) +1):floor(pp*365/time.step)])
   }
-  return(list(disease.state, infections.per.year))
+  return(list(disease.state, infections.per.year, infecteds.by.time))
   }

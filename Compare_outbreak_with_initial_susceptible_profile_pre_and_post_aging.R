@@ -10,24 +10,31 @@ source("Initial_conditions.R")
 source("SEIR_measles.R")
 
 num.repeats = 1
-num.time.steps.pre.aging = 100
-aging.section.steps  =  1000
-num.time.steps.post.aging = 100
+num.time.steps.pre.aging = floor(365/ time.step)
+aging.section.steps  = 10 * floor(365 / time.step)
+num.time.steps.post.aging = floor(365/ time.step)
 infections.by.age.pre.aging  =  matrix(0, length(demographic.ages[, 1]), num.repeats)
 infections.by.age.post.aging  =  matrix(0, length(demographic.ages[, 1]), num.repeats)
 mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
-beta                          =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
+beta_0                        =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
+beta_1                        =       0.5
+beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
 for( k in 1 : num.repeats){
   
   disease.state                 <-      initial.disease.state (demographic.ages  ,  v  , 1 ,  num.comps)
-  disease.state                 =       reduce.susceptibles (0, 5, disease.state, 0.98, num.comps, susceptible.indices)
-  disease.state                 =       reduce.susceptibles (6, 20, disease.state, 0.97, num.comps, susceptible.indices)
-  disease.state                 =       reduce.susceptibles (21, 40,  disease.state, 0.7, num.comps, susceptible.indices)
-  disease.state                 =       reduce.susceptibles (41, max(demographic.ages[, 1]),  disease.state, 0.9, num.comps, susceptible.indices)
-  
+  disease.state                 =       reduce.susceptibles (0, 10, disease.state, 0.85, num.comps, susceptible.indices)
+  disease.state                 =       reduce.susceptibles (11, 20, disease.state, 0.85, num.comps, susceptible.indices)
+  disease.state                 =       reduce.susceptibles (21, 40,  disease.state, 0.65, num.comps, susceptible.indices)
+  disease.state                 =       reduce.susceptibles (40, max(demographic.ages[, 1]),  disease.state, 1, num.comps, susceptible.indices)
+  beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
+  par(mfrow=c(3, 2))
+  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps), ylab = 'susceptible proportion')
   disease.state[3]  =  1
+  t  =  0
   
-  for (j in 1 : num.time.steps.pre.aging){
+  #for (j in 1 : num.time.steps.pre.aging){
+  while( sum(disease.state[infectious.indices ]) + sum(disease.state[infectious.indices - 1]) > 0){
+    
     N                           =        sum(disease.state)
     births.average              =        birth.rate * N * time.step 
     births.total                =        rpois(1, births.average)
@@ -37,7 +44,7 @@ for( k in 1 : num.repeats){
     new.infected                =        0
     number.infectious           =        0
     estimate.inf                =        0
-    
+    beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
     #foi.ages                    =      foi.approach3(R_0  ,  infectious.days  ,  inf.comp  ,  mixing.matrix  ,  num.comps  ,  disease.state  ,  max.age  ,  t  ,  time.step  ,  beta_1)
     foi.ages                    =      foi.by.next.gen ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps)
     updated.state               =       matrix( 0  ,  num.comps*length(demographic.ages[,1])  ,  1)
@@ -62,13 +69,14 @@ for( k in 1 : num.repeats){
       
     }
     disease.state                 =       updated.state
+    t = t + time.step
   }  
+  print(sum(disease.state[infectious.indices]) + sum(disease.state[infectious.indices - 1]))
   # reset to 0 infecteds or exposed individuals as we want to investigate the impact ofaging the population without decreasing susceptibles via infection
   disease.state[infectious.indices]  =  0
   disease.state[infectious.indices - 1]  =  0
-  par(mfrow=c(2,2))
-  plot(infections.by.age.pre.aging)
-  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps))
+  plot(infections.by.age.pre.aging, ylab = 'infections for pre-aging')
+  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps), ylab = 'susceptible proportion after infection')
   
   for ( l in 1 : aging.section.steps){
     updated.state               =        matrix( 0  ,  num.comps*length(demographic.ages[,1])  ,  1)
@@ -98,8 +106,12 @@ for( k in 1 : num.repeats){
   
   # after aging the population by a given amount, introduce a single infected 
   disease.state[3]            =  1
-  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps))
-  for (j in 1 : num.time.steps.post.aging){
+  plot(disease.state[susceptible.indices] / number.of.each.age(demographic.ages,disease.state, num.comps), ylab = 'susceptible prop post aging')
+  t = 0 # set time to 0 again, so that seasonality is at highest
+  
+  
+  #for (j in 1 : num.time.steps.post.aging){
+  while( sum(disease.state[infectious.indices ]) + sum(disease.state[infectious.indices - 1]) > 0){
     N                           =        sum(disease.state)
     births.average              =        birth.rate * N * time.step 
     births.total                =        rpois(1, births.average)
@@ -110,6 +122,7 @@ for( k in 1 : num.repeats){
     new.infected                =        0
     number.infectious           =        0
     estimate.inf                =        0
+    beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
     
     #foi.ages                    =      foi.approach3(R_0  ,  infectious.days  ,  inf.comp  ,  mixing.matrix  ,  num.comps  ,  disease.state  ,  max.age  ,  t  ,  time.step  ,  beta_1)
     foi.ages                    =      foi.by.next.gen ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps)
@@ -139,12 +152,13 @@ for( k in 1 : num.repeats){
       
     }
     disease.state                 =       updated.state
+    t = t + time.step
   }  
   
 }
 
 
-plot(infections.by.age.post.aging)
+plot(infections.by.age.post.aging, ylab = 'infections after aging')
 
 
 

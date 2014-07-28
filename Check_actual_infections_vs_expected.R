@@ -1,5 +1,6 @@
 disease.state                 <-      initial.disease.state(demographic.ages  ,  v  , initial.prop.susceptible ,  num.comps)
 age = 10
+time.step = 8
 disease.state[(age*num.comps) + 3] = 1
 new.infected                =        0
 estimate.inf                =        0

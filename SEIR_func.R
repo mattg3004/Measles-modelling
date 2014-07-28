@@ -98,7 +98,7 @@ number.of.each.age <- function(demographic.ages,disease.state, num.comps){
 
 
 
-stochastic.transmission.matrix.exposed.included <- function(age , disease.state , foi  , demographic.ages , time.step ,   rho, mu, num.comps){
+stochastic.transmission.matrix.exposed.included <- function(age , disease.state , foi , demographic.ages , time.step , rho, mu , num.comps){
   
   age.disease.state         =    disease.state[((age*num.comps)+1):((age+1)*num.comps)]
   number.of.age             =    sum(age.disease.state)
@@ -124,12 +124,12 @@ stochastic.transmission.matrix.exposed.included <- function(age , disease.state 
   
   
   if (age.disease.state[3] > 0){
-    infecteds          =    rmultinom(1, age.disease.state[3] , c(0 , 0,  (1-u) * (1- rho), (1-u ) * rho,  0  , 0,  u  * (1 - rho)  ,  u  *  rho))
+    infecteds          =    rmultinom(1, age.disease.state[3] , c(0 , 0 ,  (1-u) * (1- rho) , (1-u ) * rho , 0 , 0 , u  * (1 - rho) ,  u  *  rho))
     
   }
   
   if (age.disease.state[4] > 0){
-    recovered        =    rmultinom(1,age.disease.state[4],c( 0 , 0 , 0, (1-u) ,  0 , 0 , 0,  u))
+    recovered        =    rmultinom(1, age.disease.state[4], c( 0 , 0 , 0, (1-u) ,  0 , 0 , 0 ,  u))
   }
   
   
@@ -309,7 +309,7 @@ proportion.of.susceptible.contacts<-function (mixing.matrix, demographic.ages, d
 foi.by.next.gen <- function ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps){
   infectious.by.age  =  disease.state[infectious.indices]
   pop.by.age  =  number.of.each.age (demographic.ages,disease.state, num.comps)
-  foi.by.age  =  (rowSums(t(infectious.by.age * mixing.matrix * beta) ) / pop.by.age) * time.step / infectious.period 
+  foi.by.age  =  (rowSums(t(infectious.by.age * mixing.matrix * beta) ) / pop.by.age) * min( 1, time.step / infectious.period)
   return(foi.by.age)  
 }
 
@@ -320,10 +320,10 @@ calibrate.beta <- function (mixing.matrix, disease.state, infectious.indices, ma
   average.infectious  =  matrix(0, (max.age + 1), 1)
   for ( i in 1 : (max.age + 1) ){
     num.infectious[i]  =  1
-    average.infectious[i]  =  sum(mixing.matrix[, i]) * time.step / infectious.period
+    average.infectious[i]  =  sum(mixing.matrix[, i]) * min(1, time.step / infectious.period)
     num.infectious[i]  =  0
   }
-  beta  = R_0 /mean(average.infectious) 
+  beta  = R_0 *min(1, time.step / infectious.period) /mean(average.infectious) 
   return(beta)
 }
 
