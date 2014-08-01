@@ -27,15 +27,17 @@
   infectious.indices            =       seq(inf.comp,length(updated.state), num.comps)
   migrant.indices               =       seq( inf.comp  ,  num.comps*(max.age+1) ,  num.comps )
   susceptible.indices           =       seq( 1  ,  length(updated.state) ,  num.comps )
+  exposed.indices               =       seq(2, length(updated.state), num.comps)
+  recovered.indices             =       seq(4, length(updated.state), num.comps)
   
   initial.prop.susceptible      =       1
-  days.per.extra.vaccination    =       5 * 365     # do an additonal vaccination campaign every this many days
+  days.per.extra.vaccination    =       50 * 365     # do an additonal vaccination campaign every this many days
   number.sup.vacs               =       0           # number of supplementary vaccination campaigns so far
   max.age.for.supp.vac          =       3           # max age for supplementary vaccinations
   supp.vac                      =       0.5         # proportion of people who are up to the age of the max age for supplementary vaccination who will move to vaccinated class
   
   mixing.matrix                 <-      full.mixing.matrix(contacts, demographic.ages)      # average number of people met of each age grooup, stratified by age
-  #mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
+  mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
   beta_0                        =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
   beta_1                        =       0.8
   beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))

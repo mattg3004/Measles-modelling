@@ -90,7 +90,7 @@ number.of.each.age <- function(demographic.ages,disease.state, num.comps){
   for (i in 1:length(demographic.ages[,1]))
   {
     age = demographic.ages[i,1]
-    number.of.age[i]          =    sum(disease.state[((age * num.comps)+1):((age+1) * num.comps)])
+    number.of.age[i]          =    max(1, sum(disease.state[((age * num.comps)+1):((age+1) * num.comps)]))
   }
   #1
   return(number.of.age)
@@ -336,4 +336,34 @@ reduce.susceptibles <- function(min.age, max.age, disease.state, proportion.sus.
   disease.state [ susceptibles ]  =  round(disease.state[ susceptibles ] * ( 1 - proportion.sus.to.remove ) )
 
   return(disease.state)
+}
+
+
+
+draw.sus <- function(x){
+  u = time.step / 365
+  foi = min(1, x[1])
+  numbers = x[2]
+  rmultinom(1, numbers , c( (1-u)*(1-foi) , (1-u)*foi ,0 , 0, u*(1-foi) , u*foi , 0, 0))
+}
+
+draw.exposed <- function(x){
+  u = time.step / 365
+  numbers = x[1]
+  mu = min(1, time.step / incubation.period)
+  rmultinom(1, numbers, c(0 , (1-u) * (1- mu), (1-u ) * mu,  0  , 0,  u  * (1 - mu)  ,  u  *  mu, 0))
+}
+
+
+draw.infecteds <- function(x){
+  u = time.step / 365
+  rho = min(1, time.step / infectious.period)
+  numbers = x[1]
+  rmultinom(1, numbers , c(0 , 0 ,  (1-u) * (1- rho) , (1-u ) * rho , 0 , 0 , u  * (1 - rho) ,  u  *  rho))
+}
+
+draw.recovered <- function(x){
+  u = time.step / 365
+  numbers = x[1]
+  rmultinom(1, numbers , c(0 , 0 ,  0, (1-u ) , 0 , 0 , 0 ,  u  ))
 }
