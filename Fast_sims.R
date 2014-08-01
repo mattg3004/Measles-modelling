@@ -27,14 +27,7 @@ Run.Sims.fast <-function(num.steps){
     #print(paste("total.migrants =", sum(total.migrants)))
     
     beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
-    #disease.state[migrant.indices]    =     disease.state[migrant.indices] + migrant.infecteds
-    
-    if(j == 400){
-      disease.state[3] = 1
-    }
-    if(j == 700){
-      disease.state[3] = 1
-    }
+    disease.state[migrant.indices]    =     disease.state[migrant.indices] + migrant.infecteds
     
     foi.by.time[j, 2]           =       sum(disease.state[infectious.indices])
     # print(paste("infecteds =",sum(disease.state[seq(inf.comp,length(updated.state),num.comps)])))

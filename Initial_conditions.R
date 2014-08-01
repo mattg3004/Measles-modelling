@@ -37,7 +37,7 @@
   supp.vac                      =       0.5         # proportion of people who are up to the age of the max age for supplementary vaccination who will move to vaccinated class
   
   mixing.matrix                 <-      full.mixing.matrix(contacts, demographic.ages)      # average number of people met of each age grooup, stratified by age
-  mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
+  #mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
   beta_0                        =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
   beta_1                        =       0.8
   beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))

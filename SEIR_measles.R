@@ -29,13 +29,6 @@
     beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
     disease.state[migrant.indices]    =     disease.state[migrant.indices] + migrant.infecteds
    
-   if(j == 400){
-     disease.state[3] = 1
-   }
-   if(j == 700){
-     disease.state[3] = 1
-   }
-   
     foi.by.time[j, 2]           =       sum(disease.state[infectious.indices])
     # print(paste("infecteds =",sum(disease.state[seq(inf.comp,length(updated.state),num.comps)])))
     pre.infected                =       sum(disease.state[seq( inf.comp  ,  length(disease.state)  ,  num.comps )])
