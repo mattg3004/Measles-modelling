@@ -1,12 +1,7 @@
-  demographic.ages               =       read.csv("Ages.csv")
-  demographic.ages               =       round( read.csv("Pop_Zimbabwe.csv") )
-  
-  #starting.proportion           =       1
-  #demographic.ages              =       demographic.ages1
-  #demographic.ages[,2]          =       ceiling(demographic.ages1[,2]/starting.proportion)
+  demographic.ages              =       read.csv("Ages.csv")
+  demographic.ages              =       round(read.csv("Pop_Zimbabwe.csv"))
   contacts                      <-      read.csv("Contacts.csv")
-  #rescale.pop.to.initial.level  =       1 
-  #rescaled                      =       1
+  uk.contacts                   =       read.csv("uk_contacts.csv")
   initial.pop                   =       sum(demographic.ages[,2])
   updated.state                 =       matrix(0, num.comps * length(demographic.ages[,1]), 1)
   
@@ -19,9 +14,9 @@
   vacc.success                  =       0.85
   v                             =       vacc.prop*vacc.success
 
-  incubation.period             =       8         # length of incubation period on average
+  incubation.period             =       10         # length of incubation period on average
   mu                            =       min(1, time.step/incubation.period)   # probability of moving from exposed to infectious class during a timestep
-  infectious.period             =       5           # number of days spent in the infected class on average
+  infectious.period             =       8          # number of days spent in the infected class on average
   rho                           =       min(1,time.step/infectious.period)    # probability of losing infectiousness. not necessarily recovered from the infection, but no longer infectious.
   max.age                       =       10         # assume that when R_0 was calculated previously, this was the maximum age of the people spreading measles
   infectious.indices            =       seq(inf.comp,length(updated.state), num.comps)
@@ -31,14 +26,18 @@
   recovered.indices             =       seq(4, length(updated.state), num.comps)
   
   initial.prop.susceptible      =       1
-  days.per.extra.vaccination    =       50 * 365     # do an additonal vaccination campaign every this many days
+  days.per.extra.vaccination    =       3 * 365     # do an additonal vaccination campaign every this many days
   number.sup.vacs               =       0           # number of supplementary vaccination campaigns so far
-  max.age.for.supp.vac          =       3           # max age for supplementary vaccinations
-  supp.vac                      =       0.5         # proportion of people who are up to the age of the max age for supplementary vaccination who will move to vaccinated class
+  max.age.for.supp.vac          =       5           # max age for supplementary vaccinations
+  supp.vac                      =       0.6         # proportion of people who are up to the age of the max age for supplementary vaccination who will move to vaccinated class
   
   mixing.matrix                 <-      full.mixing.matrix(contacts, demographic.ages)      # average number of people met of each age grooup, stratified by age
-  #mixing.matrix                 =       matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
-  beta_0                        =       calibrate.beta(mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0)
+  mixing.matrix               =       matrix(0,length(demographic.ages[,1]),length(demographic.ages[,1]))
+  for ( i in 1:98){
+    mixing.matrix  [i, ]  =  demographic.ages[i, 2]
+  }
+  
+  beta_0                        =       R_0 * sum(demographic.ages[1:(max.age + 1), 2]) / sum(demographic.ages[1:(max.age + 1), 2] * colSums(mixing.matrix[, 1:(max.age+1)]))
   beta_1                        =       0.8
   beta                          =       beta_0 * (1 + beta_1 * cos(2 * pi * t / 365))
   disease.state                 <-      initial.disease.state(demographic.ages  ,  v  , initial.prop.susceptible ,  num.comps)

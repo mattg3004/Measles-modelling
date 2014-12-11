@@ -142,6 +142,50 @@ stochastic.transmission.matrix.exposed.included <- function(age , disease.state 
 
 
 
+stochastic.transmission.matrix.exposed.included.no.aging <- function(age , disease.state , foi , demographic.ages , time.step , rho, mu , num.comps){
+  
+  age.disease.state         =    disease.state[((age*num.comps)+1):((age+1)*num.comps)]
+  number.of.age             =    sum(age.disease.state)
+  prob.age.change           =    time.step/365
+  change.matrix             =    matrix(0,10,1)
+  new.infecteds             =    0
+  newly.exposed             =    0
+  # Assume that no one 1 or older gets vaccinnated
+  u          =    0
+  
+  susceptibles     =     infecteds    =     recovered     =     vac    =   exposed   =    matrix(0,8,1)
+  
+  if (age.disease.state[1] > 0){
+    susceptibles     =    rmultinom(1, age.disease.state[1] , c( (1-u)*(1-foi) , (1-u)*foi ,0 , 0, u*(1-foi) , u*foi , 0, 0))
+    newly.exposed    =    susceptibles[2]    +    susceptibles[6]
+  }
+  
+  
+  if (age.disease.state[2] > 0){
+    exposed          =    rmultinom(1, age.disease.state[2] , c(0 , (1-u) * (1- mu), (1-u ) * mu,  0  , 0,  u  * (1 - mu)  ,  u  *  mu, 0))
+    new.infecteds     =    exposed[3]   +   exposed[7]
+  }
+  
+  
+  if (age.disease.state[3] > 0){
+    infecteds          =    rmultinom(1, age.disease.state[3] , c(0 , 0 ,  (1-u) * (1- rho) , (1-u ) * rho , 0 , 0 , u  * (1 - rho) ,  u  *  rho))
+    
+  }
+  
+  if (age.disease.state[4] > 0){
+    recovered        =    rmultinom(1, age.disease.state[4], c( 0 , 0 , 0, (1-u) ,  0 , 0 , 0 ,  u))
+  }
+  
+  
+  change.matrix[seq(1,2*num.comps)]      =     susceptibles  + exposed  +  infecteds +  recovered 
+  change.matrix[9]   =   newly.exposed
+  change.matrix[10]  =   new.infecteds
+  #print(new.infecteds)
+  return(change.matrix)
+}
+
+
+
 
 stochastic.transmission.matrix.no.aging<-function(age , disease.state , vacc.immune , foi  , demographic.ages , time.step ,   rho){
   
@@ -204,39 +248,6 @@ contacts.per.age.group <- function(mixing.matrix  ,  demographic.ages){
 
 
 
-force.of.infection.by.age <- function(age  ,  mixing.matrix  ,  disease.state  ,  beta  ,  gamma  ,  time.step  ,  inf.comp  ,  num.comps){
-  number.age.brackets        =      length(disease.state)/num.comps
-  infectious.indices         =      seq(inf.comp,length(disease.state),num.comps)
-  number.infectious.by.age   =      disease.state[infectious.indices]
-  mixing.by.age              =      mixing.matrix[,age+1]*time.step
-  population.by.age          =      matrix(0,number.age.brackets,1)
-  for(q in 1:number.age.brackets){
-    population.by.age[q]     =      max(1,sum(disease.state[seq(((num.comps*(q-1))+1),num.comps*q)]))
-  }
-  foi.by.age                 =      1 - exp(-sum  ( beta* ( (number.infectious.by.age)^gamma )*mixing.by.age/population.by.age  )  )
-  
-  return(foi.by.age)
-}
-
-
-
-
-all.force.of.infections <- function(  mixing.matrix  ,  disease.state  ,  beta  ,  gamma  ,  time.step  ,  inf.comp  ,  num.comps){
-  number.age.brackets        =      length(disease.state)/num.comps
-  infectious.indices         =      seq(inf.comp,length(disease.state),num.comps)
-  number.infectious.by.age   =      disease.state[infectious.indices]
-  mixing.by.age              =      mixing.matrix*time.step
-  population.by.age          =      matrix(0,number.age.brackets,1)
-  
-  for(q in 1:number.age.brackets){
-    population.by.age[q]     =      max(1,sum(disease.state[seq(((num.comps*(q-1))+1),num.comps*q)]))
-  }
-  foi.by.age                 =      1 - exp( - ( beta* ( t(mixing.by.age) %*% (((number.infectious.by.age)^gamma) /population.by.age )  )  ) )
-  
-  return(foi.by.age)
-}
-
-
 
 refresh.plots  <- function(j, infecteds.by.time, difference.from.estimate, foi.by.time, demographic.ages, prop.infected.by.age, prop.susceptible.age, t, pop.by.year, prop.sus.time, total.prop.susceptible ){
   par(mfrow=c(3,3))
@@ -291,31 +302,17 @@ supplementary.vacc <- function(disease.state, supp.vac , max.age, num.comps){
 
 
 
-proportion.of.susceptible.contacts<-function (mixing.matrix, demographic.ages, disease.state, susceptible.indices){
-  num.comps  =  susceptible.indices[2] - susceptible.indices[1]
-  pop.by.age     =    number.of.each.age (demographic.ages,disease.state, num.comps)
-  susceptible.by.age   =   disease.state[susceptible.indices]
-  susceptible.contacts  =  sum(susceptible.by.age  %*% mixing.matrix)
-  total.contacts  =  sum(rowSums(mixing.matrix) * pop.by.age)
-  
-  prop.susceptible.contacts   =   susceptible.contacts / total.contacts
-  
-  return(prop.susceptible.contacts)
-  
-}
-
-
 
 foi.by.next.gen <- function ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps){
   infectious.by.age  =  disease.state[infectious.indices]
   pop.by.age  =  number.of.each.age (demographic.ages,disease.state, num.comps)
-  foi.by.age  =  (rowSums(t(infectious.by.age * mixing.matrix * beta) ) / pop.by.age) * min( 1, time.step / infectious.period)
+  foi.by.age  =  (colSums((infectious.by.age * t( mixing.matrix) * beta) ) / pop.by.age) * min( 1, time.step / infectious.period)
   return(foi.by.age)  
 }
 
 
 
-calibrate.beta <- function (mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0){
+calibrate.beta <- function (mixing.matrix, disease.state, infectious.indices, max.age, time.step, infectious.period, R_0, population.by.age){
   num.infectious  =  matrix(0, (max.age + 1), 1)
   average.infectious  =  matrix(0, (max.age + 1), 1)
   for ( i in 1 : (max.age + 1) ){
@@ -323,7 +320,11 @@ calibrate.beta <- function (mixing.matrix, disease.state, infectious.indices, ma
     average.infectious[i]  =  sum(mixing.matrix[, i]) * min(1, time.step / infectious.period)
     num.infectious[i]  =  0
   }
-  beta  = R_0 *min(1, time.step / infectious.period) /mean(average.infectious) 
+  g = 0
+  for (i in 1 : ( max.age + 1)){
+    g = g + (population.by.age[i] / sum(population.by.age[1 : (max.age + 1)])) * average.infectious[i]
+  }
+  beta  = R_0 * min(1, time.step / infectious.period) / g
   return(beta)
 }
 

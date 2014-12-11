@@ -24,28 +24,32 @@ probability.of.outbreak <- function(age.initial.infected, demographic.ages, init
           
           foi.ages                    =      foi.by.next.gen ( mixing.matrix, disease.state, infectious.indices, time.step , infectious.period, beta, demographic.ages, num.comps)
           updated.state               =       matrix( 0  ,  num.comps*length(demographic.ages[,1])  ,  1)
-          for ( i in 1:length(demographic.ages[,1]) ){
-            
-            age                         =      demographic.ages[i, 1]
-            foi.age                     =      min(1,foi.ages[age+1, ])
-            estimate.inf                =      foi.age*disease.state[((age*num.comps)+1)]  +  estimate.inf
-            if(age == 0)
-            {
-              foi.by.time[j,1]      =      foi.age
-            }
-            change.matrix.by.age        =      stochastic.transmission.matrix.exposed.included  (age , ceiling(disease.state * prob.survival) , foi.age  , demographic.ages , time.step ,   rho, mu, num.comps)
-            new.infected                =      new.infected   +    change.matrix.by.age[9]
-            number.infectious           =      number.infectious    +    change.matrix.by.age[10]
-            
-            if(age == max(demographic.ages[,1])){
-              updated.state[seq((((i-1)*num.comps)+1), num.comps*(i))]        <-      change.matrix.by.age[1:num.comps]
-            }
-            
-            else{
-              updated.state[seq((((i-1)*num.comps)+1), num.comps*(i+1))]      <-      updated.state[seq((((i-1)*num.comps)+1),num.comps*(i+1))] + change.matrix.by.age[seq(1,2*num.comps)]
-            }
-            
+          x              =      matrix(0, length(demographic.ages[,1]), 2)
+          x[ , 1]        =      foi.ages
+          x[ , 2]        =      disease.state[susceptible.indices]
+          sus.outs       =      apply(x, 1, draw.sus)
+          
+          x1             =      matrix(0, length(demographic.ages[,1]), 2)
+          x1[ , 1]       =      disease.state[exposed.indices]
+          exposed.out    =      apply(x1, 1, draw.exposed)
+          
+          
+          x2             =      matrix(0, length(demographic.ages[,1]), 2)
+          x2[ , 1]       =      disease.state[infectious.indices]
+          inf.out        =      apply(x2, 1, draw.infecteds)
+          
+          x3             =      matrix(0, length(demographic.ages[,1]), 2)
+          x3[ , 1]       =      disease.state[recovered.indices]
+          recovered.out   =     apply(x3, 1, draw.recovered)
+          
+          new.infected       =   sum(sus.outs[2, ])  +  sum(sus.outs[6, ])
+          number.infectious  =   sum(exposed.out[3, ]) + sum(exposed.out[7, ])
+          
+          for (p in 1 : (length(demographic.ages[ ,1]) - 1)){
+            updated.state[seq(((num.comps*( p-1 )) + 1) ,num.comps*(p+1))]   =   updated.state[seq(((num.comps*( p-1 )) + 1) , num.comps*(p+1))]  +  sus.outs[ , p]  +  exposed.out[ , p]  +  inf.out[ , p] + recovered.out[ , p]
           }
+          p = length(demographic.ages[ ,1])
+          updated.state[seq(((num.comps*( p-1 )) + 1) ,num.comps*(p))]   =   updated.state[seq(((num.comps*( p-1 )) + 1) , num.comps*(p))]  +  sus.outs[1:4 , p]  +  exposed.out[1:4 , p]  +  inf.out[1:4 , p]  +  recovered.out[ 1:4, p]
           
           total.infecteds    =    new.infected  +  total.infecteds
           disease.state   =   updated.state

@@ -31,8 +31,6 @@ Run.Sims.fast <-function(num.steps){
     
     foi.by.time[j, 2]           =       sum(disease.state[infectious.indices])
     # print(paste("infecteds =",sum(disease.state[seq(inf.comp,length(updated.state),num.comps)])))
-    pre.infected                =       sum(disease.state[seq( inf.comp  ,  length(disease.state)  ,  num.comps )])
-    
     new.infected                =        0
     number.infectious           =        0
     estimate.inf                =        0

@@ -1,13 +1,13 @@
-initial.prop = seq(0, 0.25,0.01)
+initial.prop = seq(0, 0.25,0.025)
 outbreak.threshold = 100000
 mixing.matrix                 <-      full.mixing.matrix(contacts, demographic.ages)
-p1 = probability.of.outbreak(0, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 250)
-p2 = probability.of.outbreak(10, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 250)
-p3 = probability.of.outbreak(30, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 250)
-p4 = probability.of.outbreak(90, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 250)
+p1 = probability.of.outbreak(0, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 100)
+p2 = probability.of.outbreak(10, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 100)
+p3 = probability.of.outbreak(30, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 100)
+p4 = probability.of.outbreak(90, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 100)
 
 mixing.matrix  =  matrix(1,length(demographic.ages[,1]),length(demographic.ages[,1]))
-p5 = probability.of.outbreak(2, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 250)
+p5 = probability.of.outbreak(2, demographic.ages, initial.prop, mixing.matrix, infectious.indices, time.step, infectious.period, outbreak.threshold, num.comps, inf.comp, 100)
 
 setEPS()
 postscript("Prob_large_outbreak3.eps",width = 7.6,height = 6.5)
